@@ -1,26 +1,20 @@
+import 'package:linkjo/model/product.dart';
+
 class Menu {
-  final String name;
-  String? image;
-  final int price;
+  Product? product;
   int quantity;
 
   Menu({
-    required this.name,
-    this.image,
-    required this.price,
+    this.product,
     this.quantity = 0,
   });
 
   Menu copyWith({
-    String? name,
-    String? image,
-    int? price,
+    Product? product,
     int? quantity,
   }) {
     return Menu(
-      name: name ?? this.name,
-      image: image ?? this.image,
-      price: price ?? this.price,
+      product: product ?? this.product,
       quantity: quantity ?? this.quantity,
     );
   }

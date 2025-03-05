@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:linkjo/model/menu.dart';
+import 'package:linkjo/model/product.dart';
 import 'package:linkjo/utils/helper.dart';
+import 'package:linkjo/widget/app_button.dart';
 
 class MenuList extends StatefulWidget {
   const MenuList({
@@ -12,10 +14,10 @@ class MenuList extends StatefulWidget {
     required this.orderList,
   });
 
-  final List<Menu> menuItems;
-  final Function(Menu) addToOrder;
-  final Function(String) incrementQuantity;
-  final Function(String) decrementQuantity;
+  final List<Product> menuItems;
+  final Function(Product) addToOrder;
+  final Function(int) incrementQuantity;
+  final Function(int) decrementQuantity;
   final List<Menu> orderList;
 
   @override
@@ -37,7 +39,7 @@ class _MenuListState extends State<MenuList> {
       itemBuilder: (context, index) {
         final menu = widget.menuItems[index];
         final orderIndex =
-            widget.orderList.indexWhere((item) => item.name == menu.name);
+            widget.orderList.indexWhere((item) => item.product!.id! == menu.id);
         final quantity =
             orderIndex != -1 ? widget.orderList[orderIndex].quantity : 0;
 
@@ -53,7 +55,7 @@ class _MenuListState extends State<MenuList> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.network(menu.image!, height: 100),
+                  child: Image.network(menu.image, height: 100),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
@@ -85,7 +87,7 @@ class _MenuListState extends State<MenuList> {
                 ),
                 SizedBox(height: height * 0.005),
                 quantity == 0
-                    ? ElevatedButton(
+                    ? AppButton(
                         onPressed: () {
                           setState(() {
                             widget.addToOrder(menu);
@@ -94,29 +96,55 @@ class _MenuListState extends State<MenuList> {
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.shopping_cart_checkout_sharp),
+                            Icon(
+                              Icons.shopping_cart_checkout_sharp,
+                              color: Colors.white,
+                            ),
                             SizedBox(width: 5),
-                            Text('Tambah'),
+                            Text(
+                              'Tambah',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ],
                         ),
                       )
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove),
-                            onPressed: () {
-                              widget.decrementQuantity(menu.name);
-                              setState(() {});
-                            },
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.shade300,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.remove),
+                              onPressed: () {
+                                widget.decrementQuantity(menu.id!);
+                                setState(() {});
+                              },
+                            ),
                           ),
-                          Text(quantity.toString()),
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: () {
-                              widget.incrementQuantity(menu.name);
-                              setState(() {});
-                            },
+                          const SizedBox(width: 10),
+                          Text(
+                            quantity.toString(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineLarge!
+                                .copyWith(fontSize: 16),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.shade300,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () {
+                                widget.incrementQuantity(menu.id!);
+                                setState(() {});
+                              },
+                            ),
                           ),
                         ],
                       ),

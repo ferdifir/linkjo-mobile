@@ -8,7 +8,7 @@ import 'package:linkjo/utils/hive_key.dart';
 import 'package:linkjo/utils/log.dart';
 
 class ApiService {
-  final String _baseUrl = 'http://192.168.1.8:8080';
+  final String _baseUrl = 'http://192.168.1.10:8080';
 
   Future<ApiResponse> get(String endpoint) async {
     try {
@@ -110,6 +110,7 @@ class ApiService {
 
   Map<String, String> _headers({bool isFile = false}) {
     String token = HiveService.getData(HiveKey.token, defaultValue: '');
+    Log.d(token);
     var header = {
       "Accept": "application/json",
     };

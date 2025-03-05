@@ -4,7 +4,6 @@ import 'package:linkjo/model/menu.dart';
 import 'package:linkjo/model/order_history.dart';
 import 'package:linkjo/model/product.dart';
 import 'package:linkjo/service/api_service.dart';
-import 'package:linkjo/utils/dummy.dart';
 import 'package:linkjo/utils/helper.dart';
 import 'package:linkjo/utils/log.dart';
 import 'package:linkjo/widget/menu_list.dart';
@@ -20,36 +19,40 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final _api = ApiService();
   List<Menu> orderList = [];
+  List<String> categories = [];
   List<Product> productList = [];
   List<OrderHistory> orderHistoryList = [];
 
-  void _addToOrder(Menu menu) {
+  void _addToOrder(Product menu) {
     setState(() {
-      final index = orderList.indexWhere((item) => item.name == menu.name);
+      final index =
+          orderList.indexWhere((item) => item.product!.id! == menu.id);
       if (index != -1) {
         orderList[index] =
             orderList[index].copyWith(quantity: orderList[index].quantity + 1);
       } else {
-        orderList.add(menu.copyWith(quantity: 1));
+        var order = Menu(product: menu, quantity: 1);
+        orderList.add(order);
       }
     });
     Helper.showSnackBar(context, '${menu.name} added to order list');
   }
 
-  void _incrementQuantity(String menuName) {
+  void _incrementQuantity(int menuName) {
     setState(() {
-      final index = orderList.indexWhere((item) => item.name == menuName);
+      final index =
+          orderList.indexWhere((item) => item.product!.id == menuName);
       if (index != -1) {
         orderList[index] =
             orderList[index].copyWith(quantity: orderList[index].quantity + 1);
       }
     });
-    Helper.showSnackBar(context, 'Quantity of $menuName increased');
   }
 
-  void _decrementQuantity(String menuName) {
+  void _decrementQuantity(int menuName) {
     setState(() {
-      final index = orderList.indexWhere((item) => item.name == menuName);
+      final index =
+          orderList.indexWhere((item) => item.product!.id == menuName);
       if (index != -1) {
         if (orderList[index].quantity > 1) {
           orderList[index] = orderList[index]
@@ -61,20 +64,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
     if (orderList.isEmpty) {
       Helper.showSnackBar(context, 'Order list is empty');
-    } else if (orderList.indexWhere((item) => item.name == menuName) == -1) {
+    } else if (orderList.indexWhere((item) => item.product!.id == menuName) ==
+        -1) {
       Helper.showSnackBar(context, '$menuName removed from order list');
-    } else {
-      Helper.showSnackBar(context, 'Quantity of $menuName decreased');
     }
   }
 
-  void _getProduct() async {
-    Log.d("Get product");
+  Future<void> _getProduct() async {
     final res = await _api.get("/products");
     if (res.success) {
-      setState(() {
-        productList = res.data.map((e) => Product.fromJson(e)).toList();
+      Map<String, dynamic> data = res.data!;
+      categories = [];
+      productList = [];
+      data.forEach((key, value) {
+        categories.add(key);
+        value.forEach((e) => productList.add(Product.fromJson(e)));
       });
+      Log.d(productList.first.categoryName);
+      setState(() {});
+    } else {
+      Helper.showSnackBar(
+        context,
+        res.message!,
+      );
     }
   }
 
@@ -88,6 +100,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Container(
+          margin: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              width: 2,
+              color: Colors.grey.shade300,
+            ),
+            image: const DecorationImage(
+              image: AssetImage('assets/logo.png'),
+            ),
+          ),
+        ),
         title: const Text('LinkJo'),
         actions: [
           IconButton(
@@ -128,7 +153,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         var now = DateTime.now();
                         var total = orderList.fold<int>(
                           0,
-                          (prev, item) => prev + (item.price * item.quantity),
+                          (prev, item) =>
+                              prev + (item.product!.price * item.quantity),
                         );
                         var data = OrderHistory(
                           orderNumber: now.millisecondsSinceEpoch.toString(),
@@ -171,46 +197,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: DefaultTabController(
-        length: 3,
-        child: Column(
-          children: [
-            const TabBar(
-              tabs: [
-                Tab(text: 'Bakso'),
-                Tab(text: 'Mie Ayam'),
-                Tab(text: 'Minuman'),
-              ],
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (categories.isEmpty) {
+      return const Center(
+        child: Text('Belum ada produk yang tersedia'),
+      );
+    }
+    return DefaultTabController(
+      length: categories.length,
+      child: Column(
+        children: [
+          TabBar(
+            tabs: categories.map((e) => Tab(text: e)).toList(),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: categories
+                  .map((e) => MenuList(
+                        menuItems: productList
+                            .where((element) => element.categoryName == e)
+                            .toList(),
+                        addToOrder: _addToOrder,
+                        incrementQuantity: _incrementQuantity,
+                        decrementQuantity: _decrementQuantity,
+                        orderList: orderList,
+                      ))
+                  .toList(),
             ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  MenuList(
-                    menuItems: baksoList,
-                    addToOrder: _addToOrder,
-                    incrementQuantity: _incrementQuantity,
-                    decrementQuantity: _decrementQuantity,
-                    orderList: orderList,
-                  ),
-                  MenuList(
-                    menuItems: mieAyamList,
-                    addToOrder: _addToOrder,
-                    incrementQuantity: _incrementQuantity,
-                    decrementQuantity: _decrementQuantity,
-                    orderList: orderList,
-                  ),
-                  MenuList(
-                    menuItems: minumanList,
-                    addToOrder: _addToOrder,
-                    incrementQuantity: _incrementQuantity,
-                    decrementQuantity: _decrementQuantity,
-                    orderList: orderList,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

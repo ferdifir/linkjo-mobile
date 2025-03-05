@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:linkjo/model/menu.dart';
 import 'package:linkjo/utils/helper.dart';
+import 'package:linkjo/widget/app_button.dart';
 
 class OrderList extends StatefulWidget {
   const OrderList({
@@ -31,12 +32,18 @@ class _OrderListState extends State<OrderList> {
               'Order List',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            trailing: IconButton(
-              icon: const Icon(Icons.close),
-              color: Colors.red,
-              onPressed: () {
-                Navigator.pop(context);
-              },
+            trailing: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey.shade300,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                color: Colors.red,
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
             ),
           ),
           Expanded(
@@ -44,9 +51,9 @@ class _OrderListState extends State<OrderList> {
               itemCount: widget.orderList.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(widget.orderList[index].name),
+                  title: Text(widget.orderList[index].product!.name),
                   subtitle: Text(
-                    'Rp ${Helper.thousandSeparator(widget.orderList[index].price)} x ${widget.orderList[index].quantity}',
+                    'Rp ${Helper.thousandSeparator(widget.orderList[index].product!.price)} x ${widget.orderList[index].quantity}',
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
@@ -69,7 +76,8 @@ class _OrderListState extends State<OrderList> {
             trailing: Text(
               'Rp ${Helper.thousandSeparator(widget.orderList.fold<int>(
                 0,
-                (prev, item) => prev + (item.price * item.quantity).round(),
+                (prev, item) =>
+                    prev + (item.product!.price * item.quantity).round(),
               ))}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
@@ -106,13 +114,19 @@ class _OrderListState extends State<OrderList> {
               ],
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              widget.orderList.clear();
-              setState(() {});
-              Navigator.pop(context);
-            },
-            child: const Text('Checkout'),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: AppButton(
+              onPressed: () {
+                widget.orderList.clear();
+                setState(() {});
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'Checkout',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
           ),
         ],
       ),

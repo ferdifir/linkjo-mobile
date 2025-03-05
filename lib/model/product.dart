@@ -1,33 +1,13 @@
 class Product {
-//   type Product struct {
-// 	ID            uint    `gorm:"primaryKey;autoIncrement"`
-// 	TenantID      uint    `gorm:"not null;index"`
-// 	CategoryID    *uint   `gorm:"index"`
-// 	Name          string  `gorm:"type:varchar(255);not null"`
-// 	SKU           string  `gorm:"type:varchar(50);unique"`
-// 	Barcode       string  `gorm:"type:varchar(100);unique"`
-// 	Price         float64 `gorm:"not null"`
-// 	CostPrice     *float64
-// 	Discount      float64   `gorm:"default:0"`
-// 	Stock         int       `gorm:"not null;default:0"`
-// 	MinStockAlert int       `gorm:"default:0"`
-// 	Unit          string    `gorm:"type:varchar(50);not null;default:'pcs'"`
-// 	SupplierID    *uint     `gorm:"index"`
-// 	Image         string    `gorm:"type:text"`
-// 	Description   string    `gorm:"type:text"`
-// 	IsActive      bool      `gorm:"default:true"`
-// 	CreatedAt     time.Time `gorm:"autoCreateTime"`
-// 	UpdatedAt     time.Time `gorm:"autoUpdateTime"`
-// }
   int? id;
   final int tenantId;
   final int categoryId;
   final String name;
-  final String sku;
-  final String barcode;
-  final double price;
+  final String? sku;
+  final String? barcode;
+  final int price;
   final double? costPrice;
-  final double discount;
+  final int discount;
   final int stock;
   final int minStockAlert;
   final String unit;
@@ -37,6 +17,7 @@ class Product {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? categoryName;
 
   Product({
     this.id,
@@ -57,6 +38,7 @@ class Product {
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
+    this.categoryName,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -79,6 +61,7 @@ class Product {
       isActive: json['IsActive'],
       createdAt: DateTime.parse(json['CreatedAt']),
       updatedAt: DateTime.parse(json['UpdatedAt']),
+      categoryName: json['category_name'],
     );
   }
 
@@ -100,5 +83,49 @@ class Product {
       'Description': description,
       'IsActive': isActive,
     };
+  }
+
+  Product copyWith({
+    int? id,
+    int? tenantId,
+    int? categoryId,
+    String? name,
+    String? sku,
+    String? barcode,
+    int? price,
+    double? costPrice,
+    int? discount,
+    int? stock,
+    int? minStockAlert,
+    String? unit,
+    int? supplierId,
+    String? image,
+    String? description,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? categoryName,
+  }) {
+    return Product(
+      id: id ?? this.id,
+      tenantId: tenantId ?? this.tenantId,
+      categoryId: categoryId ?? this.categoryId,
+      name: name ?? this.name,
+      sku: sku ?? this.sku,
+      barcode: barcode ?? this.barcode,
+      price: price ?? this.price,
+      costPrice: costPrice ?? this.costPrice,
+      discount: discount ?? this.discount,
+      stock: stock ?? this.stock,
+      minStockAlert: minStockAlert ?? this.minStockAlert,
+      unit: unit ?? this.unit,
+      supplierId: supplierId ?? this.supplierId,
+      image: image ?? this.image,
+      description: description ?? this.description,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      categoryName: categoryName ?? this.categoryName,
+    );
   }
 }
